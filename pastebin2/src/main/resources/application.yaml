@@ -1,0 +1,64 @@
+spring:
+  application:
+    name: pastebin
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+
+  mvc.hiddenmethod.filter.enabled: true
+  servlet.multipart.enabled: true
+
+  jpa:
+    show-sql: true
+    properties.hibernate:
+      format_sql: true
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  cloud.gcp.project-id: smartpastebin
+
+
+  profiles.active: local  # The local profile is used by default
+
+logging.level:
+  org.hibernate.SQL: DEBUG
+  org.hibernate.transaction: TRACE
+
+pastebin2-hash-generator:
+  API: http://localhost:9090
+
+bucket:
+  name: smart-pastebin-bucket
+---
+# Local profile configuration
+spring:
+  config.activate.on-profile: local
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  cloud.gcp.credentials.location: ${GOOGLE_APPLICATION_CREDENTIALS}
+
+---
+# Docker profile configuration
+spring:
+  config.activate.on-profile: docker
+  datasource:
+    url: jdbc:postgresql://postgres_db:5432/pastebin
+    username: login
+    password: password
+  cloud.gcp.credentials.location: file:/secrets/gcloudkey.json
+  boot:
+    admin:
+      client:
+        enabled: true
+        url: http://spring-boot-admin:8081
+management:
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "*"
