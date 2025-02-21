@@ -1,0 +1,15 @@
+spring:
+  application.name: admin
+  profiles.active: local
+
+server:
+  port: 8081
+---
+# Docker profile configuration
+spring:
+  config.activate.on-profile: docker
+server:
+  port: 8081
+
+
+

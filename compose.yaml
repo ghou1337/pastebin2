@@ -1,0 +1,93 @@
+name: pastebin2
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: pastebin
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    networks:
+      - pastebin_network
+    volumes:
+      - ./backup.sql:/docker-entrypoint-initdb.d/backup.sql
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: redis_cache
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - pastebin_network
+    volumes:
+      - ./dump.rdb:/data/dump.rdb
+      - redis_data:/data
+
+  pastebin2:
+    build:
+      context: ./pastebin2
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: target/pastebin-0.0.1-SNAPSHOT.jar
+    container_name: pastebin2_service
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      pastebin2-hash-generator-API: http://pastebin2-hash-generator:9090
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/pastebin
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+    ports:
+      - "8080:8080"
+    networks:
+      - pastebin_network
+    volumes:
+      - ${GOOGLE_APPLICATION_CREDENTIALS}:/secrets/gcloudkey.json:ro"
+
+  pastebin2-hash-generator:
+    build:
+      context: ./pastebin2-hash-generator
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: target/hash-generator-0.0.1-SNAPSHOT.jar
+    container_name: pastebin2_hash_service
+    restart: always
+    depends_on:
+      - redis
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/pastebin
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "9090:9090"
+    networks:
+      - pastebin_network
+
+  spring-boot-admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: target/admin-0.0.1-SNAPSHOT.jar
+    container_name: spring-boot-admin
+    restart: always
+    ports:
+      - "8081:8081"
+    networks:
+      - pastebin_network
+
+networks:
+  pastebin_network:
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -1,0 +1,46 @@
+# Игнорируем файлы сборки
+/target/
+/out/
+/build/
+
+# Игнорируем зависимости, если используем Gradle или Maven Wrapper
+/.gradle/
+/.gradle/
+/mvnw
+/mvnw.cmd
+/.mvn/
+
+# Файлы конфигурации окружения
+.env
+
+# Логи и отладочная информация
+*.log
+*.log.*
+hs_err_pid*
+/logs/
+/log/
+
+# Игнорируем файлы базы данных и SQL-дампы
+*.rdb
+*.sql
+/dump.sql
+/db-data/
+
+# Игнорируем IDE и редакторы
+/.idea/
+/*.iml
+/.vscode/
+/*.swp
+*.sublime-workspace
+
+# Игнорируем файлы Docker и Kubernetes, если они локальные
+docker-compose.override.yml
+
+# Кеши и временные файлы
+*.class
+*.jar
+*.war
+*.ear
+*.pyc
+*.DS_Store
+Thumbs.db
